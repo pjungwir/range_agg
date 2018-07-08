@@ -1,0 +1,4 @@
+comment = 'Merge adjacent/overlapping ranges'
+default_version = '1.0.0'
+module_pathname = '$libdir/range_agg'
+relocatable = true

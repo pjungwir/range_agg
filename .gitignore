@@ -1,0 +1,11 @@
+*.swp
+*.swo
+
+*.s
+*.o
+*.so
+
+/regression.diffs
+/regression.out
+/results
+/README.html

@@ -1,0 +1,33 @@
+{
+  "name": "range_agg",
+  "abstract": "Merge adjacent/overlapping ranges",
+  "version": "1.0.0",
+  "maintainer": "Paul A. Jungwirth <pj@illuminatedcomputing.com>",
+  "license": "mit",
+  "provides": {
+    "range_agg": {
+      "abstract": "Merge adjacent/overlapping ranges",
+      "file": "range_agg--1.0.0.sql",
+      "docfile": "README.md",
+      "version": "1.0.0"
+    }
+  },
+  "resources": {
+    "repository": {
+      "url": "git://github.com/pjungwir/range_agg.git",
+      "web": "https://github.com/pjungwir/range_agg",
+      "type": "git"
+    }
+  },
+  "generated_by": "Paul A. Jungwirth",
+  "meta-spec": {
+    "version": "1.0.0",
+    "url": "http://pgxn.org/meta/spec.txt"
+  },
+  "tags": [
+    "arrays",
+    "ranges",
+    "aggregates",
+    "temporal"
+  ]
+}

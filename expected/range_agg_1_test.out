@@ -1,0 +1,46 @@
+--
+--
+-- Forbidding gaps and overlaps:
+--
+--
+SELECT  room_id, range_agg(booked_during)
+FROM    reservations
+WHERE   room_id = 1
+GROUP BY room_id
+ORDER BY room_id;
+ERROR:  range_agg: gap detected between lastRange and currentRange
+SELECT  room_id, range_agg(booked_during)
+FROM    reservations
+WHERE   room_id = 6
+GROUP BY room_id
+ORDER BY room_id;
+ERROR:  range_agg: overlap detected between lastRange and currentRange
+SELECT  room_id, range_agg(booked_during)
+FROM    reservations
+WHERE   room_id NOT IN (1, 6)
+GROUP BY room_id
+ORDER BY room_id;
+ room_id |        range_agg        
+---------+-------------------------
+       2 | [07-01-2018,07-03-2018)
+       3 | 
+       4 | 
+       5 | [07-01-2018,07-03-2018)
+       7 | [07-01-2018,07-14-2018)
+(5 rows)
+
+--
+--
+-- Obeying discrete base types:
+--
+--
+SELECT	range_agg(r)
+FROM		(VALUES 
+  (int4range( 0,  9, '[]')),
+  (int4range(10, 19, '[]'))
+) t(r);
+ range_agg 
+-----------
+ [0,20)
+(1 row)
+
