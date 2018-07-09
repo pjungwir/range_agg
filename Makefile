@@ -1,12 +1,13 @@
 MODULES = range_agg
 EXTENSION = range_agg
-EXTENSION_VERSION = 1.0.0
+EXTENSION_VERSION = 1.1.0
 
 DATA = $(EXTENSION)--$(EXTENSION_VERSION).sql
 
 REGRESS = init \
 					range_agg_1_test \
 					range_agg_2_test \
+					range_agg_3_test \
 					inetrange_test \
 					with_unnest
 

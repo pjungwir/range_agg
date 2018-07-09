@@ -1,0 +1,157 @@
+--
+--
+-- Forbidding gaps and overlaps:
+--
+--
+SELECT  room_id, range_agg(booked_during, false, false)
+FROM    reservations
+WHERE   room_id = 1
+GROUP BY room_id;
+ERROR:  range_agg: gap detected between lastRange and currentRange
+SELECT  room_id, range_agg(booked_during, false, false)
+FROM    reservations
+WHERE   room_id = 6
+GROUP BY room_id;
+ERROR:  range_agg: overlap detected between lastRange and currentRange
+SELECT  room_id, range_agg(booked_during, false, false)
+FROM    reservations
+WHERE   room_id NOT IN (1, 6)
+GROUP BY room_id;
+ room_id |          range_agg          
+---------+-----------------------------
+       4 | 
+       5 | {"[07-01-2018,07-03-2018)"}
+       3 | 
+       2 | {"[07-01-2018,07-03-2018)"}
+       7 | {"[07-01-2018,07-14-2018)"}
+(5 rows)
+
+--
+--
+-- Forbidding gaps but permitting overlaps
+--
+--
+SELECT  room_id, range_agg(booked_during, false, true)
+FROM    reservations
+WHERE   room_id = 1
+GROUP BY room_id;
+ERROR:  range_agg: gap detected between lastRange and currentRange
+SELECT  room_id, range_agg(booked_during, false, true)
+FROM    reservations
+WHERE   room_id = 6
+GROUP BY room_id;
+ room_id |          range_agg          
+---------+-----------------------------
+       6 | {"[07-01-2018,07-10-2018)"}
+(1 row)
+
+SELECT  room_id, range_agg(booked_during, false, true)
+FROM    reservations
+WHERE   room_id NOT IN (1, 6)
+GROUP BY room_id;
+ room_id |          range_agg          
+---------+-----------------------------
+       4 | 
+       5 | {"[07-01-2018,07-03-2018)"}
+       3 | 
+       2 | {"[07-01-2018,07-03-2018)"}
+       7 | {"[07-01-2018,07-14-2018)"}
+(5 rows)
+
+--
+--
+-- Permitting gaps but forbidding overlaps
+--
+--
+SELECT  room_id, range_agg(booked_during, true, false)
+FROM    reservations
+WHERE   room_id = 1
+GROUP BY room_id;
+ room_id |                       range_agg                       
+---------+-------------------------------------------------------
+       1 | {"[07-01-2018,07-14-2018)","[07-20-2018,07-22-2018)"}
+(1 row)
+
+SELECT  room_id, range_agg(booked_during, true, false)
+FROM    reservations
+WHERE   room_id = 6
+GROUP BY room_id;
+ERROR:  range_agg: overlap detected between lastRange and currentRange
+SELECT  room_id, range_agg(booked_during, true, false)
+FROM    reservations
+WHERE   room_id NOT IN (1, 6)
+GROUP BY room_id;
+ room_id |          range_agg          
+---------+-----------------------------
+       4 | 
+       5 | {"[07-01-2018,07-03-2018)"}
+       3 | 
+       2 | {"[07-01-2018,07-03-2018)"}
+       7 | {"[07-01-2018,07-14-2018)"}
+(5 rows)
+
+--
+--
+-- Permitting gaps and overlaps:
+--
+--
+SELECT  room_id, range_agg(booked_during, true, true)
+FROM    reservations
+WHERE   room_id = 1
+GROUP BY room_id;
+ room_id |                       range_agg                       
+---------+-------------------------------------------------------
+       1 | {"[07-01-2018,07-14-2018)","[07-20-2018,07-22-2018)"}
+(1 row)
+
+SELECT  room_id, range_agg(booked_during, true, true)
+FROM    reservations
+WHERE   room_id = 6
+GROUP BY room_id;
+ room_id |          range_agg          
+---------+-----------------------------
+       6 | {"[07-01-2018,07-10-2018)"}
+(1 row)
+
+SELECT  room_id, range_agg(booked_during, true, true)
+FROM    reservations
+WHERE   room_id NOT IN (1, 6)
+GROUP BY room_id;
+ room_id |          range_agg          
+---------+-----------------------------
+       4 | 
+       5 | {"[07-01-2018,07-03-2018)"}
+       3 | 
+       2 | {"[07-01-2018,07-03-2018)"}
+       7 | {"[07-01-2018,07-14-2018)"}
+(5 rows)
+
+--
+--
+-- Obeying discrete base types:
+--
+--
+SELECT	range_agg(r, false, false)
+FROM		(VALUES 
+  (int4range( 0,  5, '[]')),
+  (int4range( 7,  9, '[]'))
+) t(r);
+ERROR:  range_agg: gap detected between lastRange and currentRange
+SELECT	range_agg(r, false, false)
+FROM		(VALUES 
+  (int4range( 0,  5, '[]')),
+  (int4range( 5,  9, '[]'))
+) t(r);
+ERROR:  range_agg: overlap detected between lastRange and currentRange
+SELECT	range_agg(r, true, true)
+FROM		(VALUES 
+  (int4range( 0,  9, '[]')),
+  (int4range(10, 15, '[]')),
+  (int4range(20, 26, '[]')),
+  (int4range(26, 29, '[]'))
+) t(r);
+      range_agg       
+----------------------
+ {"[0,16)","[20,30)"}
+(1 row)
+

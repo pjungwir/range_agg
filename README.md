@@ -29,6 +29,10 @@ You can also choose to raise an exception
 on either an overlap or a gap,
 by setting the respective parameter to `false`.
 
+Finally there is a two-param version,
+`range_agg(r anyrange, permit_gaps boolean)`,
+which will raise on overlaps but permits gaps (if passed `true`).
+This is likely most useful for coalescing rows in a temporal table (see below).
 
 With temporal databases
 -----------------------
@@ -42,7 +46,7 @@ and then `UNNEST` on the resulting range array, like so:
 
     SELECT  room_id, t2.booked_during
     FROM    ( 
-              SELECT  room_id, range_agg(booked_during, true, true) AS booked_during
+              SELECT  room_id, range_agg(booked_during, true) AS booked_during
               FROM    reservations
               GROUP BY room_id
             ) AS t1,
@@ -65,12 +69,29 @@ Custom Ranges
 
 There is a small caveat about using custom range types.
 The one-parameter version of `range_agg` will support them automatically,
-but the two parameter-version takes a little more work.
+but the two- and three-parameter versions take a little more work.
 [Postgres has no way to declare a function that takes `anyrange` and returns `anyrange[]`](https://www.postgresql.org/message-id/CA%2BrenyVOjb4xQZGjdCnA54-1nzVSY%2B47-h4nkM-EP5J%3D1z%3Db9w%40mail.gmail.com),
 so we have separate declarations for `int4range`, `int8range`, etc.
 Out of the box we support all built-in range types.
 If you want to support a new one, e.g. `inetrange`, just run these commands
 (after creating the extension):
+
+    CREATE OR REPLACE FUNCTION range_agg_transfn(internal, inetrange, boolean)
+    RETURNS internal
+    AS 'range_agg', 'range_agg_transfn'
+    LANGUAGE c IMMUTABLE;
+
+    CREATE OR REPLACE FUNCTION range_agg_finalfn(internal, inetrange, boolean)
+    RETURNS inetrange[]
+    AS 'range_agg', 'range_agg_finalfn'
+    LANGUAGE c IMMUTABLE;
+
+    CREATE AGGREGATE range_agg(inetrange, boolean) (
+      stype = internal,
+      sfunc = range_agg_transfn,
+      finalfunc = range_agg_finalfn,
+      finalfunc_extra
+    );
 
     CREATE OR REPLACE FUNCTION range_agg_transfn(internal, inetrange, boolean, boolean)
     RETURNS internal
@@ -112,8 +133,6 @@ Then in the database of your choice say:
 TODO
 ----
 
-- Might as well have a two-param version with `permit_overlaps` defaulting to false.
-  That's what you'd usually want for coalescing anyway.
 - Add a function to find gaps (see below).
 
 

@@ -22,6 +22,30 @@ FROM		(VALUES
  [1.2.3.0,1.2.5.0)
 (1 row)
 
+CREATE OR REPLACE FUNCTION range_agg_transfn(internal, inetrange, boolean)
+RETURNS internal
+AS 'range_agg', 'range_agg_transfn'
+LANGUAGE c IMMUTABLE;
+CREATE OR REPLACE FUNCTION range_agg_finalfn(internal, inetrange, boolean)
+RETURNS inetrange[]
+AS 'range_agg', 'range_agg_finalfn'
+LANGUAGE c IMMUTABLE;
+CREATE AGGREGATE range_agg(inetrange, boolean) (
+  stype = internal,
+  sfunc = range_agg_transfn,
+  finalfunc = range_agg_finalfn,
+  finalfunc_extra
+);
+SELECT	range_agg(r, true)
+FROM		(VALUES 
+  (inetrange('1.2.3.0', '1.2.3.128', '[)')),
+  (inetrange('1.2.4.0', '1.2.5.0', '[)'))
+) t(r);
+                  range_agg                  
+---------------------------------------------
+ {"[1.2.3.0,1.2.3.128)","[1.2.4.0,1.2.5.0)"}
+(1 row)
+
 CREATE OR REPLACE FUNCTION range_agg_transfn(internal, inetrange, boolean, boolean)
 RETURNS internal
 AS 'range_agg', 'range_agg_transfn'

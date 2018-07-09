@@ -6,6 +6,7 @@
 #include <utils/lsyscache.h>
 #include <utils/typcache.h>
 #include <utils/rangetypes.h>
+#include <funcapi.h>
 // #if PG_VERSION_NUM >= 90500
 // #include <utils/arrayaccess.h>
 // #endif
@@ -137,14 +138,11 @@ range_agg_finalfn(PG_FUNCTION_ARGS)
   }
   accumArrayResult(resultContent, RangeTypeGetDatum(lastRange), false, rangeTypeId, aggContext);
 
-  // TODO: Is it really safe to ask for the type of the 3rd arg
-  // if we only had 2?
-  if (!OidIsValid(get_fn_expr_argtype(fcinfo->flinfo, 3))) {
-    PG_RETURN_DATUM(RangeTypeGetDatum(lastRange));
-
-  } else {
+  if (type_is_array(get_fn_expr_rettype(fcinfo->flinfo))) {
     result = makeArrayResult(resultContent, CurrentMemoryContext);
     PG_RETURN_DATUM(result);
+  } else {
+    PG_RETURN_DATUM(RangeTypeGetDatum(lastRange));
   }
 }
 
