@@ -42,8 +42,9 @@ range_agg_transfn(PG_FUNCTION_ARGS)
   }
 
   rangeTypeId = get_fn_expr_argtype(fcinfo->flinfo, 1);
-  // TODO: Validate that it's really a range
-  // rangeBaseTypeId = 
+  if (!type_is_range(rangeTypeId)) {
+    ereport(ERROR, (errmsg("range_agg must be called with a range")));
+  }
   if (PG_ARGISNULL(0)) {
     state = MemoryContextAlloc(aggContext, sizeof(range_agg_state));
     state->inputs = initArrayResult(rangeTypeId, aggContext, false);
