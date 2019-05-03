@@ -6,7 +6,7 @@ It takes any [Postgres range type](https://www.postgresql.org/docs/current/stati
 and combines them, sort of like
 [`string_agg`, `array_agg`, `json_agg`, etc](https://www.postgresql.org/docs/current/static/functions-aggregate.html).
 
-There are two forms, depending on whether or not you want to permit gaps & overlaps.
+There are three forms, depending on whether or not you want to permit gaps & overlaps.
 If you call `range_agg(anyrange)` (with just a single range parameter),
 then it will raise an error if a gap or overlap is detected,
 and on success it will return a single range.
