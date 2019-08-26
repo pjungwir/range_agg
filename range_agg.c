@@ -119,6 +119,7 @@ range_agg_finalfn(PG_FUNCTION_ARGS)
       if (!state->gaps_are_okay) {
         r1Str = "lastRange"; r2Str = "currentRange";
         // TODO: Why is this segfaulting?:
+				// This is why: https://www.postgresql.org/message-id/CA%2BrenyUeS3vBGxur6-eZ5YCy_XKK7sFRG77DJezSMxrpeJ-9ag%40mail.gmail.com
         // r1Str = DatumGetCString(DirectFunctionCall1(range_out, RangeTypeGetDatum(lastRange)));
         // r2Str = DatumGetCString(DirectFunctionCall1(range_out, RangeTypeGetDatum(currentRange)));
         ereport(ERROR, (errmsg("range_agg: gap detected between %s and %s", r1Str, r2Str)));
@@ -130,6 +131,7 @@ range_agg_finalfn(PG_FUNCTION_ARGS)
       if (!state->overlaps_are_okay) {
         r1Str = "lastRange"; r2Str = "currentRange";
         // TODO: Why is this segfaulting?:
+				// This is why: https://www.postgresql.org/message-id/CA%2BrenyUeS3vBGxur6-eZ5YCy_XKK7sFRG77DJezSMxrpeJ-9ag%40mail.gmail.com
         // r1Str = DatumGetCString(DirectFunctionCall1(range_out, RangeTypeGetDatum(lastRange)));
         // r2Str = DatumGetCString(DirectFunctionCall1(range_out, RangeTypeGetDatum(currentRange)));
         ereport(ERROR, (errmsg("range_agg: overlap detected between %s and %s", r1Str, r2Str)));
