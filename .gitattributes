@@ -1,2 +1,3 @@
 sql/* linguist-vendored
 expected/* linguist-vendored
+*.sql linguist-vendored
