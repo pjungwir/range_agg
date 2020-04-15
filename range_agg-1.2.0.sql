@@ -1,4 +1,4 @@
-/* range_agg--1.1.0.sql */
+/* range_agg--1.2.0.sql */
 
 -- complain if script is sourced in psql, rather than via CREATE EXTENSION
 \echo Use "CREATE EXTENSION range_agg" to load this file. \quit
