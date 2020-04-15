@@ -83,7 +83,7 @@ range_agg_finalfn(PG_FUNCTION_ARGS)
   ArrayBuildState *inputArray;
   int inputLength;
   Datum *inputVals;
-  bool *inputNulls;
+  // bool *inputNulls;
 
   int i;
   RangeType *currentRange;
@@ -101,7 +101,7 @@ range_agg_finalfn(PG_FUNCTION_ARGS)
   if (state == NULL) PG_RETURN_NULL();
   inputArray  = state->inputs;
   inputVals   = inputArray->dvalues;
-  inputNulls  = inputArray->dnulls;
+  // inputNulls  = inputArray->dnulls;
   inputLength = inputArray->nelems;
   rangeTypeId = inputArray->element_type;
 
@@ -112,7 +112,7 @@ range_agg_finalfn(PG_FUNCTION_ARGS)
   resultContent = initArrayResult(rangeTypeId, aggContext, false);
   lastRange = DatumGetRangeTypeP(inputVals[0]);
   for (i = 1; i < inputLength; i++) {
-    Assert(inputNulls[i]);
+    // Assert(inputNulls[i]);
     currentRange = DatumGetRangeTypeP(inputVals[i]);
     // N.B. range_adjacent_internal gives true
     // if *either* A meets B OR B meets A,
