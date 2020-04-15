@@ -10,6 +10,12 @@
 // #if PG_VERSION_NUM >= 90500
 // #include <utils/arrayaccess.h>
 // #endif
+#ifndef DatumGetRangeTypeP
+#define DatumGetRangeTypeP(X) DatumGetRangeType(X)
+#endif
+#ifndef RangeTypePGetDatum
+#define RangeTypePGetDatum(X) RangeTypeGetDatum(X)
+#endif
 
 PG_MODULE_MAGIC;
 
@@ -104,10 +110,10 @@ range_agg_finalfn(PG_FUNCTION_ARGS)
   qsort_arg(inputVals, inputLength, sizeof(Datum), element_compare, typcache);
 
   resultContent = initArrayResult(rangeTypeId, aggContext, false);
-  lastRange = DatumGetRangeType(inputVals[0]);
+  lastRange = DatumGetRangeTypeP(inputVals[0]);
   for (i = 1; i < inputLength; i++) {
     Assert(inputNulls[i]);
-    currentRange = DatumGetRangeType(inputVals[i]);
+    currentRange = DatumGetRangeTypeP(inputVals[i]);
     // N.B. range_adjacent_internal gives true
     // if *either* A meets B OR B meets A,
     // which is not quite what we want,
@@ -120,11 +126,11 @@ range_agg_finalfn(PG_FUNCTION_ARGS)
         r1Str = "lastRange"; r2Str = "currentRange";
         // TODO: Why is this segfaulting?:
 				// This is why: https://www.postgresql.org/message-id/CA%2BrenyUeS3vBGxur6-eZ5YCy_XKK7sFRG77DJezSMxrpeJ-9ag%40mail.gmail.com
-        // r1Str = DatumGetCString(DirectFunctionCall1(range_out, RangeTypeGetDatum(lastRange)));
-        // r2Str = DatumGetCString(DirectFunctionCall1(range_out, RangeTypeGetDatum(currentRange)));
+        // r1Str = DatumGetCString(DirectFunctionCall1(range_out, RangeTypePGetDatum(lastRange)));
+        // r2Str = DatumGetCString(DirectFunctionCall1(range_out, RangeTypePGetDatum(currentRange)));
         ereport(ERROR, (errmsg("range_agg: gap detected between %s and %s", r1Str, r2Str)));
       }
-      accumArrayResult(resultContent, RangeTypeGetDatum(lastRange), false, rangeTypeId, aggContext);
+      accumArrayResult(resultContent, RangeTypePGetDatum(lastRange), false, rangeTypeId, aggContext);
       lastRange = currentRange;
       
     } else {  // they must overlap
@@ -132,28 +138,28 @@ range_agg_finalfn(PG_FUNCTION_ARGS)
         r1Str = "lastRange"; r2Str = "currentRange";
         // TODO: Why is this segfaulting?:
 				// This is why: https://www.postgresql.org/message-id/CA%2BrenyUeS3vBGxur6-eZ5YCy_XKK7sFRG77DJezSMxrpeJ-9ag%40mail.gmail.com
-        // r1Str = DatumGetCString(DirectFunctionCall1(range_out, RangeTypeGetDatum(lastRange)));
-        // r2Str = DatumGetCString(DirectFunctionCall1(range_out, RangeTypeGetDatum(currentRange)));
+        // r1Str = DatumGetCString(DirectFunctionCall1(range_out, RangeTypePGetDatum(lastRange)));
+        // r2Str = DatumGetCString(DirectFunctionCall1(range_out, RangeTypePGetDatum(currentRange)));
         ereport(ERROR, (errmsg("range_agg: overlap detected between %s and %s", r1Str, r2Str)));
       }
       lastRange = range_union_internal(typcache, lastRange, currentRange, false);
     }
   }
-  accumArrayResult(resultContent, RangeTypeGetDatum(lastRange), false, rangeTypeId, aggContext);
+  accumArrayResult(resultContent, RangeTypePGetDatum(lastRange), false, rangeTypeId, aggContext);
 
   if (type_is_array(get_fn_expr_rettype(fcinfo->flinfo))) {
     result = makeArrayResult(resultContent, CurrentMemoryContext);
     PG_RETURN_DATUM(result);
   } else {
-    PG_RETURN_DATUM(RangeTypeGetDatum(lastRange));
+    PG_RETURN_DATUM(RangeTypePGetDatum(lastRange));
   }
 }
 
 static int element_compare(const void *key1, const void *key2, void *arg) {
   Datum *d1 = (Datum *)key1;
   Datum *d2 = (Datum *)key2;
-  RangeType *r1 = DatumGetRangeType(*d1);
-  RangeType *r2 = DatumGetRangeType(*d2);
+  RangeType *r1 = DatumGetRangeTypeP(*d1);
+  RangeType *r2 = DatumGetRangeTypeP(*d2);
   TypeCacheEntry *typcache = (TypeCacheEntry *) arg;
   RangeBound lower1, lower2;
   RangeBound upper1, upper2;
