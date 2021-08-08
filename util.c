@@ -1,3 +1,5 @@
+#if PG_VERSION_NUM < 14000
+
 /*
  * Lots of stuff copied from backend/utils/adt/rangetypes.c
  */
@@ -55,4 +57,4 @@ range_union_internal(TypeCacheEntry *typcache, RangeType *r1, RangeType *r2,
 
   return make_range(typcache, result_lower, result_upper, false);
 }
-
+#endif
